@@ -7,3 +7,7 @@ Obviously, the Gpib driver must be working before the script can be running.
 In Linux, make the file ALEX.py executable and in the same folder were it is placed run in the terminal:
 
 `./ALEX.py`
+
+Files here:
+* _**ALEX.py**_,  the python script that makes all the work. Version 1.00
+* _**settings.txt**_ a text file were data for the script are read.
