@@ -375,7 +375,7 @@ power = []
 for i in range(0,len(foo2[0])):
 	time.append(float(foo2[0][i][0]))
 	try:
-		volt.append(float(foo3[0][i][1]-foo2[0][i][1]))
+		volt.append(float(foo2[0][i][1]-foo3[0][i][1]))
 	except:
 		volt.append(float(foo2[0][i][1]))
 		
