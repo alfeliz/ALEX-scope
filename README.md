@@ -11,3 +11,6 @@ In Linux, make the file ALEX.py executable and in the same folder were it is pla
 Files here:
 * _**ALEX.py**_,  the python script that makes all the work. Version 1.00
 * _**settings.txt**_ a text file were data for the script are read.
+
+To improve on the script:
+* Save date and time in the web page shot.
