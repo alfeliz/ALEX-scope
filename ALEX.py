@@ -142,7 +142,11 @@ def takechan(channel,sleeptime,addr):
 
 	CH_curve = [] #EMPTY NOW... LET'S FILL IT!!!
 	for x in tmp_curve[len(tmp_curve)-points:-1]:
-		CH_curve.append( (int(x)-yoff)*ymult + yzero )
+		CH_curve.append( (int(x)-yoff)*ymult )
+		#CH_curve.append( (int(x)-yoff)*ymult + yzero )
+		#Tektronix manual states (incorrectly) that you need to remove the offset of the curve data.
+		#If you remove the offset by adding it to the curve, you obtain a constant noise that is shit 
+		#and should not be there, becuase it is not.
 		
 	#CREATING TIME VECTOR:
 	t =[]
