@@ -13,6 +13,6 @@ Files here:
 * _**settings.txt**_ a text file were data for the script are read.
 
 To improve on the script:
-* Save date and time in the web page shot.
-* Save the settings file for every shot.
-* Save the Voltage difference and the power for every shot.
+-  [ ] Save date and time in the web page shot.
+-  [ ] Save the settings file for every shot.
+-  [x] _Save the Voltage difference and the power for every shot._
