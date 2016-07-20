@@ -88,7 +88,7 @@ def takechan(channel,sleeptime,addr):
 	time.sleep(sleeptime)
 	scope.write("DATA:WIDTH 1")
 	time.sleep(sleeptime)
-	scope.write("DATA:ENCDG ASCII") #1 bytes for voltage data and ASCII format.
+	scope.write("DATA:ENCDG ASCII") #1 byte for voltage data and ASCII format.
 	time.sleep(sleeptime)
 	
 	selectchan = "SELECT:"+channel+" ON"
@@ -98,10 +98,10 @@ def takechan(channel,sleeptime,addr):
 	scope.write(selectchan) #Set the channel to show, if was not it will not record the data...
 	time.sleep(sleeptime)
 
-	scope.write(datachan) #Set the channel source to Channel 1.
+	scope.write(datachan) #Set the channel source to Channel datachan.
 	time.sleep(sleeptime)
 
-	scope.write("DATA:SOURCE?") #Ask for it.
+	scope.write("DATA:SOURCE?") #Ask for data.
 	time.sleep(sleeptime)
 	CHAN = scope.read(3)
 
@@ -142,12 +142,17 @@ def takechan(channel,sleeptime,addr):
 
 	CH_curve = [] #EMPTY NOW... LET'S FILL IT!!!
 	for x in tmp_curve[len(tmp_curve)-points:-1]:
-		CH_curve.append( (int(x)-yoff)*ymult )
-		#CH_curve.append( (int(x)-yoff)*ymult + yzero )
-		#Tektronix manual states (incorrectly) that you need to remove the offset of the curve data.
-		#If you remove the offset by adding it to the curve, you obtain a constant noise that is shit 
-		#and should not be there, becuase it is not.
+		#CH_curve.append( (float(x)-yoff)*ymult ) #Removing offset	calculation that works bad and has no sense.
+		if abs(float(x)-yoff)>2: #2 is the digitizer level. We don want to record that.
+			CH_curve.append( (float(x)-yoff)*ymult ) #there is signal
+		else:
+			CH_curve.append(0)
+		#print( (float(x)-yoff)*ymult)
+
+
+
 		
+			
 	#CREATING TIME VECTOR:
 	t =[]
 	scope.write("WFMPRE:XINCR?")
