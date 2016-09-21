@@ -4,7 +4,7 @@
 #Version 1.05
 #TO DO:
 #Function TRANSF needs to take into account the posibility of an unknown trasnformation.
-#Think if the word "wire" should be the indicator of comments
+#DONE Think if the word "wire" should be the indicator of comments
 
 import os #File management
 import csv #To make the nice CSV output.
@@ -182,8 +182,8 @@ def takechan(channel,sleeptime,addr):
 ###PROGRAM:
 ###############################
 #To do:
-#1) Save the setting file
-#2)Think if to save the preamble file, and how to save it.
+#1)DONE (not necesary, info is saved in the HTMLfile) Save the setting file
+#2)DONE Think if to save the preamble file, and how to save it.
 #3)Impose closing of files.
 ############################################################################################################################
 
@@ -475,7 +475,8 @@ html_11 = '<img src="./'+'DETAIL-Picture.bmp" border="3" height="500" width="500
 
 html_12 = '<h3>Scopes wiring.</h3>'
 
-html_14 = "<p>"+str(chan_list)+"</p>"
+html_14 = "<p>" +str([item for sublist in chan_list for item in sublist])+"<p>"
+#html_14 = "<p>"+str(chan_list)+"</p>"
 
 html_99 = "</body> </html>"
 
