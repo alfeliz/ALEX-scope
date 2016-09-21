@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #Test python
 #coding: latin-1
-#Version 1.00
+#Version 1.05
 #TO DO:
 #Function TRANSF needs to take into account the posibility of an unknown trasnformation.
 #Think if the word "wire" should be the indicator of comments
