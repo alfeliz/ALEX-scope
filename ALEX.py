@@ -475,7 +475,7 @@ html_11 = '<img src="./'+'DETAIL-Picture.bmp" border="3" height="500" width="500
 
 html_12 = '<h3>Scopes wiring.</h3>'
 
-html_14 = "<p>" +str([item for sublist in chan_list for item in sublist])+"<p>"
+html_14 = "<p>" +str(item for sublist in chan_list for item in sublist)+"<p>"
 #html_14 = "<p>"+str(chan_list)+"</p>"
 
 html_99 = "</body> </html>"
