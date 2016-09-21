@@ -63,14 +63,14 @@ def transf(signal, device):
 
 	if "2Rog" in device:
 		#Multiplying to obtain the A/s:
-		der_curr = volts*8361640441.81825 #Rogowsky gives current derivative
-		current = inte.cumtrapz(der_curr, time, initial=0) #+ min(der_curr)
+		der_curr = volts*8000000000.00 #Rogowsky gives current derivative. Updated value
+		current = inte.cumtrapz(der_curr, time, initial=0)
 		result = zip(time,current)
 	elif "2Res" in device:
-		volt_div2 = 1700*volts
+		volt_div2 = 1500*volts #Updated value
 		result = zip(time,volt_div2)
 	elif "3Res" in device:
-		volt_div3 = 2907*volts
+		volt_div3 = 4500*volts #Updated value
 		result = zip(time,volt_div3)
 	elif "Phot" in device:
 		#Normalizing to 1:
@@ -466,17 +466,21 @@ html_06 = "<p><b>Comments:</b></p>"
 html_07 = "<p>"+str(shot_comments)+"</p>"
 
 html_08 = '<img src="./'+str(shot_name[1])+'-light.png" border="3" height="500" width="500">'
-
+ 
 html_09 = '<img src="./'+str(shot_name[1])+'-elec.png" border="3" height="500" width="500">'
 
 html_10 = '<img src="./'+'ALL-Picture.bmp" border="3" height="500" width="500">'
 
 html_11 = '<img src="./'+'DETAIL-Picture.bmp" border="3" height="500" width="500">'
 
+html_12 = '<h3>Scopes wiring.</h3>'
+
+html_14 = "<p>"+str(chan_list)+"</p>"
+
 html_99 = "</body> </html>"
 
 
-html_total = html_01+html_02+html_04+html_05+html_06+html_07+html_08+html_09+html_10+html_11+html_99
+html_total = html_01+html_02+html_04+html_05+html_06+html_07+html_08+html_09+html_10+html_11+html_12+html_14+html_99
 
 
 
