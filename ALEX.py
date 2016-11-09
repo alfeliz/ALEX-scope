@@ -67,10 +67,10 @@ def transf(signal, device):
 		current = inte.cumtrapz(der_curr, time, initial=0)
 		result = zip(time,current)
 	elif "2Res" in device:
-		volt_div2 = 1500*volts #Updated value
+		volt_div2 = 1359*volts #Updated value for second time
 		result = zip(time,volt_div2)
 	elif "3Res" in device:
-		volt_div3 = 4500*volts #Updated value
+		volt_div3 = 2400*volts #Updated value for second time
 		result = zip(time,volt_div3)
 	elif "Phot" in device:
 		#Normalizing to 1:
