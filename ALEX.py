@@ -76,6 +76,8 @@ def transf(signal, device):
 		#Normalizing to 1:
 		phot = volts/max(volts)
 		result = zip(time,phot)
+	elif "Dumb" in device: #"No device" attached to the scope.
+		result = zip(time,volts)
 	return[result]
 
 
@@ -142,17 +144,8 @@ def takechan(channel,sleeptime,addr):
 
 	CH_curve = [] #EMPTY NOW... LET'S FILL IT!!!
 	for x in tmp_curve[len(tmp_curve)-points:-1]:
-		#CH_curve.append( (float(x)-yoff)*ymult ) #Removing offset	calculation that works bad and has no sense.
-		if abs(float(x)-yoff)>2: #2 is the digitizer level. We don want to record that.
-			CH_curve.append( (float(x)-yoff)*ymult ) #there is signal
-		else:
-			CH_curve.append(0)
-		#print( (float(x)-yoff)*ymult)
+		CH_curve.append(0)
 
-
-
-		
-			
 	#CREATING TIME VECTOR:
 	t =[]
 	scope.write("WFMPRE:XINCR?")
