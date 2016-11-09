@@ -63,7 +63,7 @@ def transf(signal, device):
 
 	if "2Rog" in device:
 		#Multiplying to obtain the A/s:
-		der_curr = volts*8000000000.00 #Rogowsky gives current derivative. Updated value
+		der_curr = volts*9360000000.00 #Rogowsky gives current derivative. Updated value for second time
 		current = inte.cumtrapz(der_curr, time, initial=0)
 		result = zip(time,current)
 	elif "2Res" in device:
