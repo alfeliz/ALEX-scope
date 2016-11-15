@@ -144,7 +144,7 @@ def takechan(channel,sleeptime,addr):
 
 	CH_curve = [] #EMPTY NOW... LET'S FILL IT!!!
 	for x in tmp_curve[len(tmp_curve)-points:-1]:
-		CH_curve.append(0)
+		CH_curve.append((float(x)-yoff)*ymult)
 
 	#CREATING TIME VECTOR:
 	t =[]
