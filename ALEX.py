@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 #Test python
 #coding: latin-1
-#Version 1.05
+#Version 1.07
 #TO DO:
-#Function TRANSF needs to take into account the posibility of an unknown trasnformation.
-#DONE Think if the word "wire" should be the indicator of comments
+#Function TRANSF needs to take into account the posibility of an unknown trasnformation.(DONE with dumd device)
+#Think if the word "wire" should be the indicator of comments (DONE??)
+#Make something to allow to chhoose if to store worked data or just raw.
+#Choose the devices to record.
+#Fix the Zero division in the photodiode device
 
 import os #File management
 import csv #To make the nice CSV output.
@@ -144,7 +147,7 @@ def takechan(channel,sleeptime,addr):
 
 	CH_curve = [] #EMPTY NOW... LET'S FILL IT!!!
 	for x in tmp_curve[len(tmp_curve)-points:-1]:
-		CH_curve.append((float(x)-yoff)*ymult)
+		CH_curve.append((float(x) - yoff)*ymult)
 
 	#CREATING TIME VECTOR:
 	t =[]
@@ -178,6 +181,7 @@ def takechan(channel,sleeptime,addr):
 #1)DONE (not necesary, info is saved in the HTMLfile) Save the setting file
 #2)DONE Think if to save the preamble file, and how to save it.
 #3)Impose closing of files.
+#4)Posibility of selecting only raw data saving
 ############################################################################################################################
 
 ms = 1e-3
@@ -229,13 +233,13 @@ if os.path.isdir("./"+str(shot_name[1])):
 	shot_name[1] = shot_name[1]+"_01"
 
 #Making the folder structure for the shot:
-os.mkdir("./"+str(shot_name[1])) #Main folder
-os.mkdir("./"+str(shot_name[1])+"/"+shot_number+"_RAW") #Raw data folder
-os.mkdir("./"+str(shot_name[1])+"/"+shot_number+"_WORKED") #Trandformed data folder
+os.mkdir("./"+str(shot_name[1])+"-elec") #Main electrical data folder
+os.mkdir("./"+str(shot_name[1])+"-elec"+"/"+shot_number+"_RAW") #Raw data folder
+os.mkdir("./"+str(shot_name[1])+"-elec"+"/"+shot_number+"_WORKED") #Transformed data folder
 
 initial_folder = os.getcwd()
-raw_folder = os.path.join(initial_folder,str(shot_name[1])+"/"+shot_number+"_RAW")
-worked_folder = os.path.join(initial_folder,str(shot_name[1])+"/"+shot_number+"_WORKED")
+raw_folder = os.path.join(initial_folder,str(shot_name[1])+"-elec"+"/"+shot_number+"_RAW")
+worked_folder = os.path.join(initial_folder,str(shot_name[1])+"-elec"+"/"+shot_number+"_WORKED")
 
 
 ###############################	
@@ -297,7 +301,7 @@ for i in range(0,len(chan_list)):
 			time.sleep(sleeptime)
 			raw_data = scope.read(80000)
 			#Go to the raw shot folder:
-			os.chdir(os.path.join(initial_folder,str(shot_name[1])))
+			os.chdir(os.path.join(initial_folder,str(shot_name[1])+"-elec"))
 			fid = open(chan_list[i][0]+'-Picture.bmp', 'wb')
 			fid.write(raw_data)
 			fid.close()
@@ -313,7 +317,7 @@ for i in range(0,len(chan_list)):
 			time.sleep(sleeptime)
 			raw_data = scope.read(80000)
 			#Go to the general shot folder:
-			os.chdir(os.path.join(initial_folder,str(shot_name[1])))
+			os.chdir(os.path.join(initial_folder,str(shot_name[1])+"-elec"))
 			fid = open(chan_list[i][0]+'-Picture.bmp', 'wb')
 			fid.write(raw_data)
 			fid.close()
@@ -325,13 +329,9 @@ for i in range(0,len(chan_list)):
 	chansave(filename,CH_curve)
 	print("Saving raw scope file...{!s}".format(filename))
 	
-	
-	#~ if chan_list[i][0] == "DETAIL":
-		#~ print("CH_curve",CH_curve)
 
 	signal = transf(CH_curve, chan_list[i][2]) #Signal is a list of list
-	
-	#~ print(signal[0])
+
 
 	if chan_list[i][0] == "ALL": #We will store general data from the first scope only.
 		if "2Rog" in chan_list[i][2]: #Current signal
@@ -351,7 +351,7 @@ for i in range(0,len(chan_list)):
 	else:
 		chansave(filename, signal) #Just a normal list.
 		print("Normal list")
-	os.chdir(os.path.join(initial_folder,str(shot_name[1]))) #Come to the Shot folder
+	os.chdir(os.path.join(initial_folder,str(shot_name[1])+"-elec")) #Come to the Shot folder
 
 
 foo1 = [] #Not to be used
@@ -434,9 +434,9 @@ ax3.figure.savefig(str(shot_name[1])+"-light.png",dpi=300)
 #################################################	
 
 #Folder situation:
-os.chdir(os.path.join(initial_folder,str(shot_name[1])))
+os.chdir(os.path.join(initial_folder,str(shot_name[1])+"-elec"))
 
-direction = str(os.path.join(initial_folder,str(shot_name[1]))  )
+direction = str(os.path.join(initial_folder,str(shot_name[1])+"-elec")  )
 
 html_01 = """
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
@@ -468,8 +468,8 @@ html_11 = '<img src="./'+'DETAIL-Picture.bmp" border="3" height="500" width="500
 
 html_12 = '<h3>Scopes wiring.</h3>'
 
-html_14 = "<p>" +str(item for sublist in chan_list for item in sublist)+"<p>"
-#html_14 = "<p>"+str(chan_list)+"</p>"
+#html_14 = "<p>" +str(item for sublist in chan_list for item in sublist)+"<p>"
+html_14 = "<p>"+str(chan_list)+"</p>"
 
 html_99 = "</body> </html>"
 
@@ -479,7 +479,7 @@ html_total = html_01+html_02+html_04+html_05+html_06+html_07+html_08+html_09+htm
 
 
 #Writing of web page:
-os.chdir(os.path.join(initial_folder,str(shot_name[1])))
+os.chdir(os.path.join(initial_folder,str(shot_name[1])+"-elec"))
 with open(str(shot_name[1])+".html","w") as htfile:
 	htfile.write(html_total)	
 	htfile.close()
