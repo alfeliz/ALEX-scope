@@ -1,41 +1,68 @@
-shot	   ALEX528
+#This is acomment line not used in the setup construction...
+shotname	ALEXtest
 
-SCOPE ALL
+#This line stores data treatment: (Pay attention to NOT leave space after the last character...
+storeboolean	ELEC
+#This other not:
+#storeboolean RAW
+
+#scop. LECROY
+
+#CH1
+# 2Rogowsky Malena + 13dBs + 50 Ohms
+
+#CH2
+# 2Resistive divider + 50 Ohms + Short cable
+
+#CH3
+# 3Resistive divider + 50 Ohms + Short cable
+
+#CH4
+# Photodiode + 50 Ohms + Short cable 
+ 
+
+#scop. DETAIL
+
+#CH1
+# 2Rogowsky Malena + 13dBs + 50 Ohms
+ 
+#If data are not in this scope, it does not get transformed.
+scop. ALL
 
 CH1
- 2Rogowsky Malena + 50 Ohms
+ 2Rogowsky Malena + 13dBs + 50 Ohms
 
 CH2
- 2Resistive divider + 50 Ohms
+ 2Resistive divider + 50 Ohms + Short cable
 
 CH3
- 3Resistive Divider + 50 Ohms
- 
+ 3Resistive divider + 50 Ohms + Short cable
+
 CH4
- Photodiode
-
-
-Delays to scope:
-CH1   60 ns
-CH2   63 ns
-CH3   63 ns
-CH4   54/57 ns
+ Photodiode + 50 Ohms + Short cable 
 
 
 
-SCOPE DETAIL
 
 
- 
 
-N.A N.A.  0cm wire ShortCircuit.
+Copper 50um  5.1cm wire.
 
 2resitive in Spark Gap pole and 
 
 3resistive in earth pole.
 
- Short circuit first test after new improvments on ALEX.
+Shot at 10kV to record better current. 
+All Ok.
 
 
 
- 10 000 - 1 000 Volts
+#Check delays before next experiments!!!!!!
+Delays to scope:
+CH1   60 ns	
+CH2   63 ns	
+CH3   63 ns	
+CH4   54/57 ns	
+
+
+ ~10000 - 1000 Volts
