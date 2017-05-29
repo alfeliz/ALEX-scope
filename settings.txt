@@ -3,8 +3,8 @@ shotname	ALEXtest
 
 #This line stores data treatment: (Pay attention to NOT leave space after the last character...
 storeboolean	ELEC
-#This other not:
-#storeboolean RAW
+#to store only raw data, use RAW
+#To store calibration data, use CALI
 
 #scop. LECROY
 
