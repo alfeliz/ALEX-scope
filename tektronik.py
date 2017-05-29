@@ -18,21 +18,21 @@ import time #timing handling
 
 #To remove similar values in a chain:
 #From: https://www.peterbe.com/plog/uniqifiers-benchmark
-def rem_repeat(seq, idfun=None): 
-   # order preserving
-   if idfun is None:
-       def idfun(x): return x
-   seen = {}
-   result = []
-   for item in seq:
-       marker = idfun(item)
-       # in old Python versions:
-       # if seen.has_key(marker)
-       # but in new ones:
-       if marker in seen: continue
-       seen[marker] = 1
-       result.append(item)
-   return result
+#~ def rem_repeat(seq, idfun=None): 
+   #~ # order preserving
+   #~ if idfun is None:
+       #~ def idfun(x): return x
+   #~ seen = {}
+   #~ result = []
+   #~ for item in seq:
+       #~ marker = idfun(item)
+       #~ # in old Python versions:
+       #~ # if seen.has_key(marker)
+       #~ # but in new ones:
+       #~ if marker in seen: continue
+       #~ seen[marker] = 1
+       #~ result.append(item)
+   #~ return result
    
 #Defining a function to save the channels info:
 def chansave(channel,chandata):
@@ -75,7 +75,7 @@ def transf(signal, device):
 		result = np.column_stack((time,phot))
 	elif "None" in device: #"No device" attached to the scope.
 		result = np.column_stack((time,volts))
-			
+
 	return[result]
 
 
@@ -87,8 +87,6 @@ def takechan(channel,sleeptime,addr):
 	scope.write("*IDN?") #Identify the scope
 	time.sleep(sleeptime)
 	scope_type = scope.read(3)
-	
-	#~ print scope_type
 	
 	if scope_type == "TEK": #tektronik scopes
 		scope.write("HEADER OFF") #Don't give headers of data with the data.

@@ -8,6 +8,7 @@ import numpy as np #Numerical work in Python. Yeah!!!
 import matplotlib.pyplot as plt
 # (http://stackoverflow.com/questions/710551/import-module-or-from-module-import)
 import time #timing handling
+from scipy.optimize import leastsq
 
 import tektronik as teky #function names are different enough to do not overlap.
 
@@ -164,7 +165,7 @@ data = {} #DICTIONARY WITH DATA
 
 for i in range(0,len(chan_list)):
 	if chan_list[i][0] == "ALL":
-		print "\nScope ALL\n"
+		print "\nScope ALL"
 		CH_curve, CH_error, CH_preamble = teky.takechan(chan_list[i][1][:-1],sleeptime,addr01) #Real command, man.
 		if saved_ALL==False:
 			print "Start reading the ALL screen. This takes a while..."
@@ -177,7 +178,7 @@ for i in range(0,len(chan_list)):
 			print 'Done with ALL picture'
 			saved_ALL = True
 	elif chan_list[i][0] =="DETAIL":
-		print "\nScope DETAIL\n"
+		print "\nScope DETAIL"
 		CH_curve, CH_error, CH_preamble = teky.takechan(chan_list[i][1][:-1],sleeptime,addr02) #Real command, man.
 		if saved_DETAIL == False:
 			print "Start reading the DETAIL screen. This takes a while..."
@@ -190,7 +191,7 @@ for i in range(0,len(chan_list)):
 			print 'Done with DETAIL picture'
 			saved_DETAIL = True
 	elif chan_list[i][0] =="LECROY":
-		print "\nScope LECROY\n"
+		print "\nScope LECROY"
 		CH_curve, CH_error, CH_preamble = teky.takechan(chan_list[i][1][:-1],sleeptime,addr03) #Real command, man.
 		if saved_LECROY == False:
 			print "Start reading the LECROY screen. This takes a while..."
@@ -209,10 +210,17 @@ for i in range(0,len(chan_list)):
 	
 	if verbose:
 		signal = teky.transf(CH_curve, chan_list[i][2]) #It stores the data in the third element of the list.
-
+		
 		if chan_list[i][0] == "ALL": #We will store general data from the first scope only.
 			if "2Rog" in chan_list[i][2]: #Current signal
+				vec = []
 				data["current"] = signal[0]
+				for x in range(0,len(CH_curve)):
+					vec.append(float(CH_curve[x][1])*9360000000.00)
+				#~ print vec
+				data["der_curr"] = vec
+				#~ print "type der_curr: ", type(data["der_curr"])
+
 			elif "2Res" in chan_list[i][2]: #voltage beginning signal
 				data["volt_in"] = signal[0]
 			elif "3Res" in chan_list[i][2]: #voltage end signal
@@ -221,7 +229,6 @@ for i in range(0,len(chan_list)):
 				data["Phot"] = signal[0]
 
 		filename = chan_list[i][0]+ "_" + chan_list[i][2][1:6] + ".csv"
-		print(os.getcwd())
 		os.chdir(worked_folder)
 		teky.chansave(filename, signal[0]) #Because I know that then is the first list were info is.
 		print("Saving parameter file...{!s}".format(filename))
@@ -274,6 +281,120 @@ if verbose:
 		ax4.legend(["Phot.(A.U.)"], loc=3)
 		ax3.figure.savefig(str(shot_name[0])+"-light.png",dpi=300)
 
+	elif type_work == "CALI":
+		print "ALEX CALIBRATION TREATMENT OF DATA"
+		volt = []
+		V2Res = []
+		time = []
+		current = []
+		der_curr = []
+		curr_not_align = []
+		if data.has_key("current"):
+			for i in range(0,len(data["current"])):
+				time.append(float(data["current"][i][0]))
+				curr_not_align.append(float(data["current"][i][1]))
+		if data.has_key("der_curr"):
+			for i in range(0,len(data["der_curr"])):
+				der_curr.append(float(data["der_curr"][i]))
+		if data.has_key("volt_in"):
+			for i in range(0,len(data["volt_in"])):
+				V2Res.append(float(data["volt_in"][i][1]))
+		if data.has_key("volt_in") and data.has_key("volt_out"):
+			for i in range(0,len(data["volt_in"])):
+				volt.append(float(data["volt_out"][i][1]-data["volt_in"][i][1]))
+		elif data.has_key("volt_out"):
+			for i in range(0,len(data["volt_out"])):
+				volt.append(float(data["volt_out"][i][1]))	
+		#Shot name for the output file
+		#shot_name = str(raw_input("Disparo? "))
+
+		#Current problem persists in the alignment. No clear reason for it.
+		#curr_not_alig = inte.cumtrapz(der_curr, time, initial=0) #Not correctly aligned!!!
+
+		#Placing current rightly:
+		pol = np.polyfit(time,curr_not_align,1)
+		current = curr_not_align - np.polyval(pol,time) + pol[1]
+
+		###
+		#Finding ALEX support parameters by adjusting the voltage to the ideal circuit
+		###
+		#We make a stack of the current and its derivative vectors to have a matrix of data to adjust
+		x = np.vstack([current, der_curr]).T
+		#Using just Numpy to solve the problem, not sklearn:
+		#Linear adjust of Voltage to the current amd its derivative. 
+		#The parameters are R and L, after simple transformations
+		#np.linalg.lstsq  returns a list with:
+		# parameters_results[0], sum of residues[1], rank of matrix x[2], singular values of x[4]
+		#First with the data from 2Res divider, R and L are the addition of the support and earth values
+		sum_par = np.linalg.lstsq(x, np.array(V2Res))[0] #Support and earth values.
+		#Now with data from 3Res divider, R and L are the support values only.
+		x2 = np.vstack([current, der_curr]).T
+		par = np.linalg.lstsq(x2, np.array(volt), rcond=1e-2)[0] #Support values.
+
+		###
+		#Finding ALEX L and R, the other part of the circuit by
+		#defining the functions to fit C+B*exp(-alpha*(x-x0))*cos(omega*(x-x0)),
+		#which is the current derivative. Also possible to use this to adjust the Rogowsky.
+		###
+		#Initial guess for parameters:
+		#Meaning of the vector, check a few lines down its transformation: 
+		# guess_par[0] ---> Baseline for the current derivative.
+		# guess_par[1] ---> Multiplication factor for the exponential oscillatory decay
+		# guess_par[2] ---> Decay contant of exponential.
+		# guess_par[3] ---> Timing of current initial respect the scope zero time.
+		# guess_par[4] ---> Frequency of the oscillation.
+		#REMEMBER THAT EVERYTHING HERE HAS UNITS. IN HERE SI UNITS
+		guess_par_cir = [np.mean(der_curr[0:10]), abs(max(der_curr))*0.1, 1e-3/(abs(time[0]-time[1])), 1.67e-6, 1.74e6]
+		#Function of derivative current (direct channel signal):
+		func = lambda t,par_cir:par_cir[0] + par_cir[1]*np.exp(-par_cir[2]*(t-par_cir[3]))*np.cos(par_cir[4]*(t-par_cir[3]))
+		#Function to optimize (function minus der_curr[current derivative]):
+		optimize = lambda par_cir: func(time[400:],par_cir) - der_curr[400:]
+		#Optimization with leastsq function:
+		adj_par_cir = leastsq(optimize, guess_par_cir)[0]
+		#Calculation of derivative current values from the adjustment
+		adjusted =[]
+		for i in time[400:]:
+			adjusted.append(func(i,adj_par_cir))
+		#Statistical Error(high because of a problem with the end part of the current)
+		err_vec =[]
+		for i in range(len(time[400:])):
+			err_vec.append((der_curr[i]-adjusted[i])**2)
+		error = np.sqrt(sum(err_vec)/len(time[400:]))
+		#Making sense of the parameters related with R and L of the circuit:
+		#Inductance of the circuit
+		Cir_Inductance = 1 / ( 2.2e-6 * ( adj_par_cir[4]**2 + adj_par_cir[3]**2) ) #Henri
+		#The value of ALPHA(adj_par[3]) is almost zero...
+		#Resistance of the circuit
+		Cir_Resistance = 2 * adj_par_cir[2] * Cir_Inductance #Ohmns
+
+		###
+		# Storing the obtained parameters in a text file
+		###
+		with open(str(shot_name[0])+"-cali.txt","w") as save_file:
+			save_file.write("Calibration values for "+str(shot_name[0])+"(S.I. Units)\n\n")
+			save_file.write("Support results:\n")
+			save_file.write("R_sop\t\tL_sop:\n")
+			save_file.write("{:0.3e}".format(par[0])+"\t\t"+"{:0.3e}".format(par[1])+"\n")
+			save_file.write("Earth pole results:\n")
+			save_file.write("R_tie\t\tL_tie:\n")
+			save_file.write("{:0.3e}".format(sum_par[0]-par[0])+"\t\t"+"{:0.3e}".format(sum_par[1]-par[1])+"\n")
+			save_file.write("\nCircuit Results:\n")
+			save_file.write("R_cir\t\tL_cir:\n")
+			save_file.write("{:0.3e}".format(Cir_Resistance)+"\t\t"+"{:0.3e}".format(Cir_Inductance)+"\n")
+
+		###
+		# Saving a graph with the adjustment
+		###
+		plt.plot(time,der_curr,"r",  time[400:], adjusted, "k")
+		plt.legend(["Current derivative", "Adjusted"])
+		plt.title("ALEX calibration with shot "+str(shot_name[0]))
+		plt.ylabel("A/s")
+		plt.xlabel("Seconds")
+		plt.savefig(str(shot_name[0])+"-cir-adj.png", bbox_inches='tight')
+
+
+
+
 	
 #################################################	
 #HTML construction:
@@ -303,23 +424,25 @@ html_07 = "<p>"+str(shot_comments)+"</p>\n"
 if verbose:
 	if type_work =="ELEC": #electrical signals treatment
 		html_08 = '<img src="./'+str(shot_name[0])+'-light.png" border="3" height="500" width="500">\n'
+	elif type_work =="CALI": #ALEX calibration
+		html_08 = '<img src="./'+str(shot_name[0])+'-cir-adj.png" border="3" height="500" width="500">\n'+'<p>Calibration file exists.</p>\n'
 	elif type_work == "OTHER": #Other treatment of signals.
 		html_08 = '<img src="./'+"WHATEVER IT COMES HERE"+'-light.png" border="3" height="500" width="500">\n'
 else:
 	html_08 = '<p>No signals treatment in this shot. Just raw data.</p> \n'	
 
 if saved_ALL == True:
-	html_09 = '<img src="./'+'ALL-Picture.bmp" border="3" height="250" width="250">'
+	html_09 = '<p>ALL scope:</p><p><img src="./'+'ALL-Picture.bmp" border="3" height="250" width="250"></p>\n'
 else:
 	html_09 = '<p> No image saved from ALL scope.</p> \n'
 
 if saved_DETAIL == True:
-	html_10 = '<img src="./'+'DETAIL-Picture.bmp" border="3" height="250" width="250">'
+	html_10 = '<p>DETAIL scope:</p><p><img src="./'+'DETAIL-Picture.bmp" border="3" height="250" width="250"></p>\n'
 else:
 	html_10 = '<p> No image saved from scope DETAIL.</p> \n' 
 
 if saved_LECROY == True:
-	html_11 = '<img src="./'+'LECROY-Picture.bmp" border="3" height="250" width="250">'
+	html_11 = '<p>LECROY scope:</p><p><img src="./'+'LECROY-Picture.bmp" border="3" height="250" width="250"></p>\n'
 else:
 	html_11 = '<p> No image saved from scope LECROY.</p> \n' 
 
