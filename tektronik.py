@@ -145,7 +145,8 @@ def takechan(channel,sleeptime,addr):
 		#Waveform transformation into real volts:
 			#The rounding to 2 ciphers is important to avoid the use of 
 			#garbage bits apperaing in the digitazing process from the computer.
-		CH_curve = [round((int(x) - yoff)*ymult,2) for x in curve] 
+			# As now no integration is necessary, 6 cyphers are used.
+		CH_curve = [round((int(x) - yoff)*ymult,6) for x in curve] 
 
 		#CREATING TIME VECTOR:
 		t =[]
@@ -191,7 +192,7 @@ def takechan(channel,sleeptime,addr):
 		time.sleep(sleeptime)
 		wave_ascii =  scope.read(8*int(points)).split(",") #It reads bites transformed in BYTES...
 		wave_number = [float(number) for number in wave_ascii]
-		volts = [ round(  ( ((float(number) / 256 / 32 ) * CH_scale ) - CH_offset ),2) for number in wave_ascii]
+		volts = [ round(  ( ((float(number) / 256 / 32 ) * CH_scale ) - CH_offset ),6) for number in wave_ascii]
 		#Making the time vector:
 		t =[] #It's a list
 		for i in range(len(volts)):
