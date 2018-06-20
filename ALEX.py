@@ -19,7 +19,8 @@ import tektronik as teky #function names are different enough to do not overlap.
 ###############################
 #To do:
 #2)DONE Think if to save the preamble file, and how to save it.
-#3)Impose closing of files.
+#3)Impose closing of files. (¿Necessary?)
+#4)error in raw and calibrated channels.
 ############################################################################################################################
 
 ms = 1e-3
