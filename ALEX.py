@@ -19,8 +19,7 @@ import tektronik as teky #function names are different enough to do not overlap.
 ###############################
 #To do:
 #2)DONE Think if to save the preamble file, and how to save it.
-#3)Impose closing of files. (¿Necessary?)
-#4)error in raw and calibrated channels.
+#3)Impose closing of files.
 ############################################################################################################################
 
 ms = 1e-3
@@ -85,6 +84,7 @@ if "RAW" in shot_raw:
 else:
 	verbose = True
 	type_work = shot_raw.translate(None,"storebooelan").translate(None,"\t")
+	print type_work
 
 
 
@@ -212,27 +212,26 @@ for i in range(0,len(chan_list)):
 	if verbose:
 		signal = teky.transf(CH_curve, chan_list[i][2]) #It stores the data in the third element of the list.
 		
-		if chan_list[i][0] == "ALL": #We will store general data from the first scope only.
-			if "2Rog" in chan_list[i][2]: #Current signal
-				vec = []
-				data["current"] = signal[0]
-				for x in range(0,len(CH_curve)):
-					vec.append(float(CH_curve[x][1])*9360000000.00)
-				#~ print vec
-				data["der_curr"] = vec
+		if chan_list[i][0] == "LECROY": #We will store the data from the Lecroy scope, that records the electrical data.
+			if "2Rog" in chan_list[i][2]: #Derivative Current signal
+				data["der_curr"] = signal[0]
+				#~ for x in range(0,len(CH_curve)):
+					#~ vec.append(float(CH_curve[x][1])*9360000000.00)
+				#~ data["der_curr"] = vec
 				#~ print "type der_curr: ", type(data["der_curr"])
-
 			elif "2Res" in chan_list[i][2]: #voltage beginning signal
 				data["volt_in"] = signal[0]
 			elif "3Res" in chan_list[i][2]: #voltage end signal
 				data["volt_out"] = signal[0]
-			elif "Phot" in chan_list[i][2]: #Photodiode
-				data["Phot"] = signal[0]
+			elif "Curr" in chan_list[i][2]: #Current signal
+				data["Curr"] = signal[0]
+		if chan_list[i][2] == "Phot": #Photodiode signal, if exists
+			data["Phot"] = signal[0]
 
 		filename = chan_list[i][0]+ "_" + chan_list[i][2][1:6] + ".csv"
 		os.chdir(worked_folder)
 		teky.chansave(filename, signal[0]) #Because I know that then is the first list were info is.
-		print("Saving parameter file...{!s}".format(filename))
+		print("Saving worked files...{!s}".format(filename))
 		os.chdir(initial_folder) #Go to shot folder.
 
 		
@@ -248,22 +247,29 @@ if verbose:
 		print "GENERAL ELECTRIC TREATMENT OF DATA"
 		volt = []
 		time = []
+		time2 = []
 		current = []
+		der_curr = []
 		photodiode =[]
 		power = []
-		if data.has_key("current"):
-			for i in range(0,len(data["current"])):
-				time.append(float(data["current"][i][0]))
-				current.append(float(data["current"][i][1]))
+		if data.has_key("der_curr"):
+			for i in range(0,len(data["der_curr"])):
+				time.append(float(data["der_curr"][i][0]))
+				der_curr.append(float(data["der_curr"][i][1]))
 		if data.has_key("volt_in") and data.has_key("volt_out"):
 			for i in range(0,len(data["volt_in"])):
-				volt.append(float(data["volt_out"][i][1]-data["volt_in"][i][1]))
+				volt.append(float(data["volt_in"][i][1]-data["volt_out"][i][1]))
 		elif data.has_key("volt_out"):
 			for i in range(0,len(data["volt_out"])):
 				volt.append(float(data["volt_out"][i][1]))	
 		if data.has_key("Phot"):
 			for i in range(0,len(data["Phot"])):
-				photodiode.append(float(data["Phot"][i][1]))			
+				time2.append(float(data["Phot"][i][0]))
+				photodiode.append(float(data["Phot"][i][1]))
+		if data.has_key("Curr"):
+			for i in range(0,len(data["Curr"])):
+				current.append(float(data["Curr"][i][1]))
+						
 		for i in range(0,len(volt)):
 			power.append(float(volt[i]*current[i])/1e3) #KiloWatts
 
@@ -272,15 +278,15 @@ if verbose:
 		ax3.plot(time,volt,"g", time,current,"b")
 		ax3.set_ylabel("Volts, Current")
 		ax3.legend(["Volts(V)","Current(A)"])
-		ax3.set_title(str(shot_name[0])+" light")
+		ax3.set_title(str(shot_name[0])+" elec")
 		ax4 = ax3.twinx()
-		ax4.plot(time, photodiode,"k")
+		ax4.plot(time2, photodiode,"k")
 		ax4.set_ylabel("Phot. (A.U.)", color="k")
 		# Make the y-axis label and tick labels match the line color.
 		for tl in ax4.get_yticklabels():
 			tl.set_color('k')
 		ax4.legend(["Phot.(A.U.)"], loc=3)
-		ax3.figure.savefig(str(shot_name[0])+"-light.png",dpi=300)
+		ax3.figure.savefig(str(shot_name[0])+"-elec.png",dpi=300)
 
 	elif type_work == "CALI":
 		print "ALEX CALIBRATION TREATMENT OF DATA"
@@ -289,11 +295,11 @@ if verbose:
 		time = []
 		current = []
 		der_curr = []
-		curr_not_align = []
+		#~ curr_not_align = []
 		if data.has_key("current"):
 			for i in range(0,len(data["current"])):
 				time.append(float(data["current"][i][0]))
-				curr_not_align.append(float(data["current"][i][1]))
+				current.append(float(data["current"][i][1]))
 		if data.has_key("der_curr"):
 			for i in range(0,len(data["der_curr"])):
 				der_curr.append(float(data["der_curr"][i]))
@@ -306,15 +312,6 @@ if verbose:
 		elif data.has_key("volt_out"):
 			for i in range(0,len(data["volt_out"])):
 				volt.append(float(data["volt_out"][i][1]))	
-		#Shot name for the output file
-		#shot_name = str(raw_input("Disparo? "))
-
-		#Current problem persists in the alignment. No clear reason for it.
-		#curr_not_alig = inte.cumtrapz(der_curr, time, initial=0) #Not correctly aligned!!!
-
-		#Placing current rightly:
-		pol = np.polyfit(time,curr_not_align,1)
-		current = curr_not_align - np.polyval(pol,time) + pol[1]
 
 		###
 		#Finding ALEX support parameters by adjusting the voltage to the ideal circuit
@@ -392,8 +389,6 @@ if verbose:
 		plt.ylabel("A/s")
 		plt.xlabel("Seconds")
 		plt.savefig(str(shot_name[0])+"-cir-adj.png", bbox_inches='tight')
-
-
 
 
 	
