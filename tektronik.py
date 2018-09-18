@@ -39,14 +39,14 @@ def chansave(channel,chandata):
 	if not os.path.isfile(channel):	#When the file does not exists.
 		with open(channel, 'w') as arch:
 			writer = csv.writer(arch, delimiter="\t", quotechar=" ")
-			#4 decimals:
-			writer.writerows(map(lambda t: ("%.4e" % t[0], "%.4e" % t[1]), chandata))
+			#8 decimals:
+			writer.writerows(map(lambda t: ("%.8e" % t[0], "%.8e" % t[1]), chandata))
 			#~ writer.writerows(chandata)
 	else: #the file exists:
 		with open("01-"+channel, 'w') as arch:
 			writer = csv.writer(arch, delimiter="\t", quotechar=" ")
-			#4 decimals:
-			writer.writerows(map(lambda t: ("%.4e" % float(t[0]), "%.4e" % float(t[1])), chandata))
+			#8 decimals:
+			writer.writerows(map(lambda t: ("%.8e" % float(t[0]), "%.8e" % float(t[1])), chandata))
 	return[0]   
    
 def transf(signal, device): 
@@ -60,9 +60,8 @@ def transf(signal, device):
 
 	if "2Rog" in device:
 		#Multiplying to obtain the A/s:
-		der_curr = volts*9360000000.00 #Rogowsky gives current derivative. Updated value for second time
-		current = inte.cumtrapz(der_curr, time, initial=0)
-		result = np.column_stack((time,current))
+		der_curr = volts*12820000000.00 #Rogowsky gives current derivative. Updated value for third time
+		result = np.column_stack((time,der_curr))
 	elif "2Res" in device:
 		volt_div2 = 1359*volts #Updated value for second time
 		result = np.column_stack((time,volt_div2))
@@ -73,6 +72,9 @@ def transf(signal, device):
 		#Normalizing to 1:
 		phot = volts/max(volts)
 		result = np.column_stack((time,phot))
+	elif "Curr" in device:
+		curr_time = volts * 139000
+		result = np.column_stack((time,curr_time))
 	elif "None" in device: #"No device" attached to the scope.
 		result = np.column_stack((time,volts))
 
@@ -145,8 +147,8 @@ def takechan(channel,sleeptime,addr):
 		#Waveform transformation into real volts:
 			#The rounding to 2 ciphers is important to avoid the use of 
 			#garbage bits apperaing in the digitazing process from the computer.
-			# As now no integration is necessary, 6 cyphers are used.
-		CH_curve = [round((int(x) - yoff)*ymult,6) for x in curve] 
+			# As now no integration is necessary, 10 cyphers are used.
+		CH_curve = [round((int(x) - yoff)*ymult,10) for x in curve] 
 
 		#CREATING TIME VECTOR:
 		t =[]
@@ -158,8 +160,7 @@ def takechan(channel,sleeptime,addr):
 			
 		CH_curve = zip(t,CH_curve)
 		CH_error = ymult/Volt
-		
-	else: #lecroy scope without label. It produces a crap for label.
+	else: #Lecroy scope. Its label is shit.
 		scope.write('DTFORM ASCII') #ASCII format for the data.	
 		time.sleep(sleeptime)
 		scope.write('WAVESRC '+channel) #Selecting channel for waveform download.
@@ -192,7 +193,7 @@ def takechan(channel,sleeptime,addr):
 		time.sleep(sleeptime)
 		wave_ascii =  scope.read(8*int(points)).split(",") #It reads bites transformed in BYTES...
 		wave_number = [float(number) for number in wave_ascii]
-		volts = [ round(  ( ((float(number) / 256 / 32 ) * CH_scale ) - CH_offset ),6) for number in wave_ascii]
+		volts = [ round(  ( ((float(number) / 256 / 32 ) * CH_scale ) - CH_offset ),12) for number in wave_ascii]
 		#Making the time vector:
 		t =[] #It's a list
 		for i in range(len(volts)):
