@@ -1,4 +1,3 @@
-
 import os #Folder and files managment
 import csv #To make the nice CSV output.
 import re #Regular expresions use.
@@ -60,7 +59,7 @@ def transf(signal, device):
 
 	if "2Rog" in device:
 		#Multiplying to obtain the A/s:
-		der_curr = volts*12820000000.00 #Rogowsky gives current derivative. Updated value for third time
+		der_curr = volts*5671000000.00 #Rogowsky gives current derivative. Updated value for forth time
 		result = np.column_stack((time,der_curr))
 	elif "2Res" in device:
 		volt_div2 = 1359*volts #Updated value for second time
@@ -72,8 +71,8 @@ def transf(signal, device):
 		#Normalizing to 1:
 		phot = volts/max(volts)
 		result = np.column_stack((time,phot))
-	elif "Curr" in device:
-		curr_time = volts * 139000
+	elif "Curr" in device: #Updated value for second time
+		curr_time = volts * 51780
 		result = np.column_stack((time,curr_time))
 	elif "None" in device: #"No device" attached to the scope.
 		result = np.column_stack((time,volts))
