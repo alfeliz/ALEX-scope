@@ -9,8 +9,8 @@ In Linux, make the file ALEX.py executable, and in the same folder were it is pl
 `./ALEX.py`
 
 Files here:
-* _**ALEX.py**_,  the python script that makes all the work. Version 1.00
-* _**settings.txt**_ a text file were data for the script are read.
+* _**ALEX.py**_,  the python script that makes all the work. Version 2.20
+* _**settings.txt**_ a text file were data for the script are read. Now admits comments starting by '#'
 * _**tektronik.py**_ the module where all the functions to handle the scopes and data transformation are stored/placed.
 
 To improve on the script:
