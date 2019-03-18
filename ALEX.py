@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #Test python
 #coding: latin-1
-#Version 2.20
+#Version 2.21
 
 import os #File management
 import numpy as np #Numerical work in Python. Yeah!!!
@@ -219,9 +219,9 @@ for i in range(0,len(chan_list)):
 					#~ vec.append(float(CH_curve[x][1])*9360000000.00)
 				#~ data["der_curr"] = vec
 				#~ print "type der_curr: ", type(data["der_curr"])
-			elif "2Res" in chan_list[i][2]: #voltage beginning signal
+			elif "DI03" in chan_list[i][2]: #voltage beginning signal
 				data["volt_in"] = signal[0]
-			elif "3Res" in chan_list[i][2]: #voltage end signal
+			elif "DI04" in chan_list[i][2]: #voltage end signal
 				data["volt_out"] = signal[0]
 			elif "Curr" in chan_list[i][2]: #Current signal
 				data["Curr"] = signal[0]
@@ -280,7 +280,8 @@ if verbose:
 		ax3.legend(["Volts(V)","Current(A)"])
 		ax3.set_title(str(shot_name[0])+" elec")
 		ax4 = ax3.twinx()
-		ax4.plot(time2, photodiode,"k")
+		if len(photodiode) >10:
+			ax4.plot(time2, photodiode,"k")
 		ax4.set_ylabel("Phot. (A.U.)", color="k")
 		# Make the y-axis label and tick labels match the line color.
 		for tl in ax4.get_yticklabels():
