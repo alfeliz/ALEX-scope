@@ -15,5 +15,5 @@ Files here:
 
 To improve on the script:
 -  [ ] Save date and time in the web page shot.
--  [x] _Save the settings file for every shot._ (Not the settings file, but the info there is saved in the HTML file.
+-  [x] _Save the settings file for every shot._ (Not the settings file, but the info there is saved in the HTML file).
 -  [x] _Save the Voltage difference and the power for every shot._
