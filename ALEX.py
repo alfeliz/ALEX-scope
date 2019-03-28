@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #Test python
 #coding: latin-1
-#Version 2.21
+#Version 2.30
 
 import os #File management
 import numpy as np #Numerical work in Python. Yeah!!!
@@ -37,7 +37,7 @@ addr03 = 11 #Gpib address of scope 03, A.K.A "LECROY"
 ###############################
 with open("./settings.txt","r") as sett: #Open file with settings called "settings.txt" in this folder.
 	text_list = list(sett) #Store the data in a list, each element a line of the file.
-	ste_list = [line for line in text_list if not "#" in line]
+	ste_list = [line for line in text_list if not "#" in line] #Remove comment lines
 
 
 
@@ -58,6 +58,7 @@ shot_wire =(" ".join(shot_wire)).split() #Split the list with the lines with the
 for i in range(0,len(ste_list)): #Comments go from the first line with "wire" to the end of the file.
 	if "wire" in ste_list[i]:
 		pos = i+1
+		break #To avoid the use of the LAST time that the word 'wire' iappears in the setting file.
 		
 shot_comments = ste_list[pos:-1]
 
@@ -297,13 +298,13 @@ if verbose:
 		current = []
 		der_curr = []
 		#~ curr_not_align = []
-		if data.has_key("current"):
-			for i in range(0,len(data["current"])):
-				time.append(float(data["current"][i][0]))
-				current.append(float(data["current"][i][1]))
+		if data.has_key("Curr"):
+			for i in range(0,len(data["Curr"])):
+				time.append(float(data["Curr"][i][0]))
+				current.append(float(data["Curr"][i][1]))
 		if data.has_key("der_curr"):
 			for i in range(0,len(data["der_curr"])):
-				der_curr.append(float(data["der_curr"][i]))
+				der_curr.append(float(data["der_curr"][i][1]))
 		if data.has_key("volt_in"):
 			for i in range(0,len(data["volt_in"])):
 				V2Res.append(float(data["volt_in"][i][1]))
@@ -329,7 +330,7 @@ if verbose:
 		#Now with data from 3Res divider, R and L are the support values only.
 		x2 = np.vstack([current, der_curr]).T
 		par = np.linalg.lstsq(x2, np.array(volt), rcond=1e-2)[0] #Support values.
-
+		
 		###
 		#Finding ALEX L and R, the other part of the circuit by
 		#defining the functions to fit C+B*exp(-alpha*(x-x0))*cos(omega*(x-x0)),
@@ -365,11 +366,12 @@ if verbose:
 		#The value of ALPHA(adj_par[3]) is almost zero...
 		#Resistance of the circuit
 		Cir_Resistance = 2 * adj_par_cir[2] * Cir_Inductance #Ohmns
-
+		
 		###
 		# Storing the obtained parameters in a text file
 		###
 		with open(str(shot_name[0])+"-cali.txt","w") as save_file:
+			print "Saving file..."
 			save_file.write("Calibration values for "+str(shot_name[0])+"(S.I. Units)\n\n")
 			save_file.write("Support results:\n")
 			save_file.write("R_sop\t\tL_sop:\n")
